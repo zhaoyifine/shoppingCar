@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        水果名称：<input type="text" name="" v-model="shuiguo">
+        价格：<input type="text" name="" v-model="price">
+        <button @click="addfruit">添加商品</button>
+        <ul>
+            <li v-for="(item,index) in classList">
+                水果:{{item.fruit}}--价格:{{item.price}}
+                <button @click="addtochat(index)">添加到购物车</button>
+            </li>
+        </ul>
+        <chat :chatarr="chatarr"></chat>
+    </div>
+    <script src="vue.js"></script>
+    <script>
+        var Chat={
+            props:['chatarr'],
+            template:`<div>
+            购物车
+            <table border="1">
+                <tr>
+                    <th>选中</th>
+                    <th>水果名称</th>
+                    <th>数量</th>
+                    <th>价格</th>
+                </tr>
+                <tr v-for="(chat,index) in chatarr">
+                    <td><input type="checkbox" name="" v-model="chat.active"></td>
+                    <td>{{chat.fruit}}</td>
+                    <td><span @click="reducecount(index)">-</span>{{chat.count}}<span @click="addcount(index)">+</span></td>
+                    <td>{{chat.price * chat.count}}</td>
+                </tr>
+                <tr>
+                    <td colspan='2'>选中的课程:{{activeCount}}/{{count}}</td>
+                    <td colspan='2'>需付金额:{{totalprice}}</td>
+                </tr>
+            </table>
+        </div>`,
+        computed:{
+                activeCount(){
+                    return this.chatarr.filter(v=>v.active).length
+                },
+                count(){
+                    return this.chatarr.length
+                },
+                totalprice(){
+                    let total=0
+                    this.chatarr.forEach(element => {
+                        if(element.active){
+                            total+=element.price*element.count
+                        }
+                    })
+                    return total
+                }
+            },
+            watch:{
+                chatarr:{
+                    handler(){
+                        window.localStorage.setItem('chat',JSON.stringify(this.chatarr))
+                    },
+                    deep:true
+                }
+            },
+        methods:{addcount(index){
+                this.chatarr[index].count++
+            },
+            reducecount(index){
+                if(this.chatarr[index].count>1){
+                    this.chatarr[index].count--
+                }else{
+                    if(window.confirm(`是否删除${this.chatarr[index].fruit}?`)){
+                        this.chatarr.splice(index,1)
+                    }
+                }
+            }
+         
+        },
+       
+        }
+    new Vue({
+        el:"#app",
+        components:{Chat},
+        data(){
+            return{
+                classList:[
+                    {fruit:'苹果',price:3},
+                    {fruit:'葡萄',price:8},
+                    {fruit:'火龙果',price:6},
+                    {fruit:'柚子',price:5},
+                    {fruit:'八喜',price:9}
+                ],
+                shuiguo:'',
+                price:'',
+                chatarr:[],
+                count:''
+            }
+        },
+        methods:{
+            addfruit(){
+                this.classList.push({fruit:this.shuiguo,price:this.price})
+                this.shuiguo=''
+                this.price=''
+                
+            },
+            addtochat(index){
+                const goods=this.classList[index]
+                console.log(goods)
+               var result=this.chatarr.find(v=>v.fruit==goods.fruit)
+               console.log(result)
+                if(result){
+                    result.count+=1
+                    console.log(result.count)
+                }else{
+                    this.chatarr.push({...goods,count:1,active:true})
+            
+                }
+            },
+        },
+        created(){
+            this.chatarr=JSON.parse(window.localStorage.getItem('chat'))
+        }
+    })
+    
+    </script>
+    
+</body>
+</html>
